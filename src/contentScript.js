@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // Content script file will run in the context of web page.
 // With content script you can manipulate the web pages using
@@ -12,32 +12,61 @@
 // See https://developer.chrome.com/extensions/content_scripts
 
 // Log `title` of current active web page
-const pageTitle = document.head.getElementsByTagName('title')[0].innerHTML;
-console.log(
-  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
-);
-
 // Communicate with background file by sending a message
-chrome.runtime.sendMessage(
-  {
-    type: 'GREETINGS',
+
+function sendMessage(type, message) {
+  chrome.runtime.sendMessage({
+    type: type,
     payload: {
-      message: 'Hello, my name is Con. I am from ContentScript.',
+      message: message,
     },
-  },
-  response => {
-    console.log(response.message);
-  }
-);
+  });
+}
 
-// Listen for message
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'COUNT') {
-    console.log(`Current count is ${request.payload.count}`);
-  }
+console.log("checking");
 
-  // Send an empty response
-  // See https://github.com/mozilla/webextension-polyfill/issues/130#issuecomment-531531890
-  sendResponse({});
-  return true;
-});
+
+let target = document.querySelector("#app");
+
+
+let config = {
+  attributes: true,
+  childList: true,
+  characterData: true,
+};
+
+if (target) {
+  let observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      if (mutation.type === "childList") {
+        if (mutation.addedNodes.length) {
+          if (mutation.addedNodes[0].className === "main--Z1w6YvE") {
+            let observer2 = new MutationObserver(function (mutations) {
+              mutations.forEach(function (mutation) {
+                if (mutation.addedNodes.length) {
+                  if (mutation.addedNodes[0].className === "overlay--Arkp5") {
+                    sendMessage("NOTIFY", "hi, this is notification");
+                  }
+                }
+              });
+            });
+            observer2.observe(document.querySelector(".main--Z1w6YvE"), config);
+            observer.disconnect();
+          }
+        }
+      }
+    });
+  });
+
+  observer.observe(target, config);
+}
+
+// document.addEventListener('DOMContentLoaded', function() {
+//  if (!Notification) {
+//   alert('Desktop notifications not available in your browser. Try Chromium.');
+//   return;
+//  }
+//
+//  if (Notification.permission !== 'granted')
+//   Notification.requestPermission();
+// });

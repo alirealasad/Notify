@@ -5,17 +5,24 @@
 // For more information on background script,
 // See https://developer.chrome.com/extensions/background_pages
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.type === 'GREETINGS') {
-    const message = `Hi ${
-      sender.tab ? 'Con' : 'Pop'
-    }, my name is Bac. I am from Background. It's great to hear from you.`;
+function notifyMe(tab) {
+ if (Notification.permission !== 'granted')
+  Notification.requestPermission();
+ else {
+  var notification = new Notification('You got a Poll', {
+   icon: 'http://cdn.sstatic.net/stackexchange/img/logos/so/so-icon.png',
+   body: 'Hey there! You\'ve been notified!',
+  });
+  notification.onclick = function() {
+    chrome.tabs.update(tab, {active: true})
+  };
+ }
+}
 
-    // Log message coming from the `request` parameter
-    console.log(request.payload.message);
-    // Send a response message
-    sendResponse({
-      message,
-    });
+
+chrome.runtime.onMessage.addListener((request, sender) => {
+  if (request.type === 'NOTIFY') {
+    const message = 'received';
+    notifyMe(sender.tab.id);
   }
 });
