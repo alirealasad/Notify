@@ -23,11 +23,11 @@ jobs:
         uses: papeloto/action-zip@v1
         with:
           files: build/
-          dest: markupshare.zip
+          dest: notify.zip
       - name: releasing the files
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: Notify.zip
+          files: notify.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
